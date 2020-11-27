@@ -26,7 +26,22 @@ QuickCommondWin::QuickCommondWin(QWidget *parent)
     qInfo()<<("CMD_HOME_:" + CMD_HOME_);
     qInfo()<<("CMD_DIR_:" + CMD_DIR_);
 
-    this->cmdPath = CMD_HOME_.append("/").append(CMD_DIR_);
+    if(CMD_HOME_ == "" || CMD_DIR_ == ""){
+        qInfo()<<("未获取到配置信息----------------------------------");
+        qInfo()<<("读取配置文件结束----------------------------------");
+        return;
+    }
+
+    QDir homeDir(CMD_HOME_);
+    if(!homeDir.exists()){
+        qInfo()<<("根目录不存在----------------------------------");
+        return;
+    }
+    if(homeDir.isRoot()){
+        homeDir.setPath(homeDir.rootPath());
+    }
+
+    this->cmdPath = homeDir.absoluteFilePath(CMD_DIR_);
     qInfo()<<("cmdPath:" + this->cmdPath);
     qInfo()<<("读取配置文件结束----------------------------------");
 
@@ -117,7 +132,8 @@ void QuickCommondWin::on_pushButton_clicked()
     qInfo()<<("创建命令快捷方式----------------------------------");
     //create cmd
     QString cmdPath = this->cmdPath;
-    QString path = cmdPath.append("\\").append(cmdName).append(".lnk");
+    QDir linkDir(this->cmdPath);
+    QString path = linkDir.absoluteFilePath(cmdName+".lnk");
 
     qInfo()<<("cmdName:" + cmdName);
     qInfo()<<("cmdLink:" + cmdLink);
@@ -157,7 +173,8 @@ void QuickCommondWin::on_delete_2_triggered()
     int index = this->cmdNameList.indexOf(cmdNameItem->text());
 
     QString cmdPath = this->cmdPath;
-    QString path = cmdPath.append("\\").append(cmdNameItem->text()).append(".lnk");
+    QDir cmdDir(this->cmdPath);
+    QString path = cmdDir.absoluteFilePath(cmdNameItem->text().append(".lnk"));
     QFileInfo FileInfo(path);
     if(FileInfo.isFile() && FileInfo.exists()){
         bool f = QFile::remove(path);
